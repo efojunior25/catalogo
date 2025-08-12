@@ -29,4 +29,8 @@ public class Product {
 
     @Column(name = "active", nullable = false)
     private Boolean active = true;
+
+    @Version
+    @Column(name = "version", nullable = false)
+    private Integer version = 0;
 }
