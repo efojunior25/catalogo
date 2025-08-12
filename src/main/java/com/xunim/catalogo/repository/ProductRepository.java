@@ -24,12 +24,12 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
 
     //Listar Top 3 produtos Mais vendidos
     @Query(value = """
-        SELECT p.id, p.name, p.price, p.stock, p.active,
+        SELECT p.id, p.name, p.price, p.stock, p.active, p.version,
                 COALESCE(SUM(oi.quantity), 0) as total_sold
         FROM products p
         LEFT JOIN order_items oi ON p.id = ou.product.id
         WHERE p.active = true
-        GROUP BY p.id, p.name, p.price, p.stock, p.active
+        GROUP BY p.id, p.name, p.price, p.stock, p.active, p.version
         ORDER BY total_sold DESC
         LIMIT 3
         """, nativeQuery = true)
