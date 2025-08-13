@@ -1,12 +1,10 @@
 package com.xunim.catalogo.service;
 
-import com.xunim.catalogo.dto.OrderItemRequestDTO;
-import com.xunim.catalogo.dto.OrderItemResponseDTO;
-import com.xunim.catalogo.dto.OrderRequestDTO;
-import com.xunim.catalogo.dto.OrderResponseDTO;
+import com.xunim.catalogo.dto.*;
 import com.xunim.catalogo.entity.Order;
 import com.xunim.catalogo.entity.OrderItem;
 import com.xunim.catalogo.entity.Product;
+import com.xunim.catalogo.exception.InsuffcientStockException;
 import com.xunim.catalogo.repository.OrderRepository;
 import com.xunim.catalogo.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
@@ -39,7 +37,24 @@ public class OrderService {
         Map<Long, Product> productMap = products.stream()
                 .collect(Collectors.toMap(Product::getId, product -> product));
 
-        //TODO: Criar função para validar Erro de estoque e criar DTO
+        List<StockErrorDTO> stockErrors = new ArrayList<>();
+
+        for (OrderItemRequestDTO itemRequest : orderRequest.getItems()) {
+            Product product = productMap.get(itemRequest.getProductId());
+            if (product == null) {
+                stockErrors.add(new StockErrorDTO(itemRequest.getProductId(), 0, "Produto não encontrado."));
+            } else if (product.getStock() < itemRequest.getQuantity()) {
+                stockErrors.add(new StockErrorDTO(
+                        itemRequest.getProductId(),
+                        product.getStock(),
+                        product.getName()
+                ));
+            }
+        }
+
+        if(!stockErrors.isEmpty()) {
+            throw new InsuffcientStockException(stockErrors);
+        }
 
         Order order = new Order();
         order.setCreatedAt(LocalDateTime.now());
